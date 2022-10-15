@@ -1,5 +1,5 @@
 {
-	"name": "logger-node",
+	"name": "logger-chalker",
 	"version": "1.0.1",
 	"description": "Node.js logger",
 	"main": "Logger.js",
