@@ -81,6 +81,9 @@ class LoggerChalker {
 	debug(...text) {
 		this.#stdOut(this.levels.debug, text, "debug");
 	}
+	dir(object, options) {
+		console.dir(object, options);
+	}
 
 	#clearLogs() {
 		this.#logs = [];
