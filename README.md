@@ -1,7 +1,6 @@
-A simple package to log your i/o.
-One of the main features of this package is the leveling and coloring of logs
+A simple package to log your data. The main feature of this package is leveling
 
-**Install:**
+## Install
 
 ```bash
 npm i logger-chalker
@@ -13,115 +12,181 @@ or
 yarn add logger-chalker
 ```
 
-### How it works:
+## How it works
 
-I suggest you attach logger instance to the global object.
-
-#### A few examples of leveling:
-
-1. Import:
+**Import**
 
 ```js
 const { LoggerChalker } = require("logger-chalker");
 ```
 
-2. Create an instance and pass the global level to it.
-   The levels you can use are (the order is important- lower to higher):
+**Create instance**
 
 ```js
-error, warning, info, debug;
+const logger = new LoggerChalker();
 ```
 
-Im using lowest level in this example:
+**Set level**
+
+The default levels you can use
 
 ```js
-const logger = new LoggerChalker("error");
+{
+   none:0
+   error: 1,
+   warn: 2,
+   info: 3,
+   debug: 4,
+}
 ```
 
-You can also set global level with `logger` instance. For example:
+Use the `setLevel` method to set the desired level
 
 ```js
-logger.setLevel(logger.levels.info);
+logger.setLevel(logger.levels.levelName);
 ```
 
-**Some examples:**
+### Examples
 
-**When global level is `error`:**
+To control levels you can use predefined methods or manually with `log` method.
+
+#### Using predefined methods
+
+**When level is `error`**
 
 ```js
-logger.error("logging some errors"); // printed
-logger.warn("logging some warnings"); // not printed
-logger.info("logging some informations"); // not printed
-logger.debug("logging some debugging data"); // not printed
+logger.error("logging error"); // printed
+logger.warn("logging warning"); // not printed
+logger.info("logging info"); // not printed
+logger.debug("logging debug"); // not printed
 ```
 
-**When global level is `warning`:**
+**When level is `warning`**
 
 ```js
-logger.error("logging some errors"); // printed
-logger.warn("logging some warnings"); // printed
-logger.info("logging some informations"); // not printed
-logger.debug("logging some debugging data"); // not printed
+logger.error("logging error"); // printed
+logger.warn("logging warning"); // printed
+logger.info("logging info"); // not printed
+logger.debug("logging debug"); // not printed
 ```
 
-**When global level is `info`:**
+**When level is `info`**
 
 ```js
-logger.error("logging some errors"); // printed
-logger.warn("logging some warnings"); // printed
-logger.info("logging some informations"); // printed
-logger.debug("logging some debugging data"); // not printed
+logger.error("logging error"); // printed
+logger.warn("logging warning"); // printed
+logger.info("logging info"); // printed
+logger.debug("logging debug"); // not printed
 ```
 
-**When global level is `debug`:**
+**When level is `debug`**
 
 ```js
-logger.error("logging some errors"); // printed
-logger.warn("logging some warnings"); // printed
-logger.info("logging some informations"); // printed
-logger.debug("logging some debugging data"); // printed
+logger.error("logging error"); // printed
+logger.warn("logging warning"); // printed
+logger.info("logging info"); // printed
+logger.debug("logging debug"); // printed
 ```
 
-**Set level manually:**
+#### Using `log` method
 
-You can also set level manually.
-The `logger.log` method takes 2 or more arguments.
-The first one is your log level.
-The rest is for printing. example:
+This method takes at least 2 arguments. The first one is `level` and the rest is for printing.
 
 ```js
-logger.log("info", "Hello", "World!"); // Hello World!
+logger.log(logger.levels.info, "Hello", "World!"); // Hello World!
 ```
 
-**Disable all logs:**
-
-Simply set the level to a level that is not in levels (empty string should be enough):
+**Disable all logs**
 
 ```js
-logger.setLevel("");
+logger.unsetLevel();
 ```
 
 or
 
 ```js
-logger.removeLevel();
+logger.setLevel(logger.levels.none);
 ```
 
-### Colorizing output:
+#### level customization
 
-Objects and arrays not supported.
-You can colorizing foreground and background of strings and numbers.
-Methods starting with `bg` is for background colors. It takes two arguments.
-First one is for your printing text.
-Second one is for foreground color of text (default is white).
-You can use `logger.colors` to choose available colors.
-some example:
+You can add new, change orders or remove as your wish.
+**_Default Levels_**
 
 ```js
-logger.bgRed("Hello!").log("info");
-logger.bgGreen("Hello!", logger.colors.yellow).log("info", "World!");
-logger.red("Hello!").bgYellow("World!").info();
+{
+   none:0
+   error: 1,
+   warn: 2,
+   info: 3,
+   debug: 4,
+}
 ```
 
-**Access to colorizer module:**
-This package using Chalk module for colorizing. You can access to it by `logger.colorizer`
+**Remove level**
+
+```js
+logger.removeLevel("info");
+```
+
+**_levels_**
+
+```js
+{
+   none:0
+   error: 1,
+   warn: 2,
+   debug: 4,
+}
+```
+
+**Update level**
+
+```js
+logger.updateLevel("info", 5);
+```
+
+**_levels_**
+
+```js
+{
+   none:0
+   error: 1,
+   warn: 2,
+   debug: 4,
+   info: 8,
+}
+```
+
+**Add new level**
+
+```js
+logger.updateLevel("critical", 5);
+```
+
+**_levels_**
+
+```js
+{
+   none:0
+   error: 1,
+   warn: 2,
+   debug: 4,
+   critical:5,
+   info: 8,
+}
+```
+
+## Output coloring
+
+You can color the foreground and background of primitive types. Methods starting with `bg` are for background colors. You can use `logger.colors` and `logger.bgColors` to see what colors are available.
+
+```js
+logger.bgRed("Hello!").info(); //Hello!
+logger.bgBlack("Hello", logger.colors.yellow).info("World!"); //Hello World!
+logger.red("Hello").bgBlue("JS", logger.colors.whiteBright).info("World!"); //Hello JS World!
+```
+
+#### Access to the coloring module
+
+I use [chalk](https://www.npmjs.com/package/chalk) for coloring. You can access it with `logger.colorizer`. For more information please check [this](https://www.npmjs.com/package/chalk).

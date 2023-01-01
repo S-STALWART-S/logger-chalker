@@ -1,0 +1,16 @@
+{
+	"version": "0.2",
+	"ignorePaths": [],
+	"dictionaryDefinitions": [],
+	"dictionaries": [],
+	"words": [],
+	"ignoreWords": [
+		"chalker",
+		"esbuild",
+		"flowtype",
+		"linebreak",
+		"rushstack",
+		"sonarjs"
+	],
+	"import": []
+}

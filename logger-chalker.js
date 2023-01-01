@@ -1,15 +1,23 @@
 const chalk = require("chalk");
+const { customTypeof } = require("custom-typeof");
 
 const colors = {
 	black: "black",
+	blackBright: "blackBright",
 	blue: "blue",
+	blueBright: "blueBright",
 	cyan: "cyan",
+	cyanBright: "cyanBright",
 	green: "green",
 	greenBright: "greenBright",
+	magenta: "magenta",
+	magentaBright: "magentaBright",
 	red: "red",
 	redBright: "redBright",
 	white: "white",
+	whiteBright: "whiteBright",
 	yellow: "yellow",
+	yellowBright: "yellowBright",
 };
 
 const bgColors = {
@@ -32,42 +40,53 @@ const bgColors = {
 };
 
 class LoggerChalker {
-	constructor(level) {
-		this.#level = level;
+	#logs = [];
+	#level = 0;
+	levels = {
+		none: 0,
+		error: 1,
+		warn: 2,
+		info: 3,
+		debug: 4,
+	};
+
+	constructor() {
 		this.colorizer = chalk;
 		this.colors = colors;
 		this.bgColors = bgColors;
-		this.levels = {
-			error: "error",
-			warn: "warn",
-			info: "info",
-			debug: "debug",
-		};
 	}
-	#logs = [];
-	#level = "";
-	#levels = ["error", "warn", "info", "debug"];
+
+	updateLevel(name, value) {
+		this.#checkLevelValue(value);
+		this.levels[name] = value;
+		return this;
+	}
+	removeLevel(name) {
+		delete this.levels[name];
+		return this;
+	}
+	#checkLevelValue(sentLevelValue) {
+		if (customTypeof.isNotNumber(sentLevelValue)) {
+			throw {
+				message: "level value should be an number",
+				sentLevelValue,
+			};
+		}
+	}
 
 	setLevel(level) {
+		this.#checkLevelValue(level);
 		this.#level = level;
 	}
-	removeLevel() {
-		this.setLevel("");
-	}
-
-	#canSend(level) {
-		if (!level) return false;
-		if (!this.levels[level]) return false;
-		return this.#levels.indexOf(this.#level) >= this.#levels.indexOf(level);
-	}
-
-	clear() {
-		console.clear();
-		return this;
+	unsetLevel() {
+		this.setLevel(this.levels.none);
 	}
 
 	log(level, ...text) {
 		this.#stdOut(level, text, "log");
+	}
+	dir(level, item, options) {
+		this.#stdOut(level, item, "dir", options);
 	}
 	info(...text) {
 		this.#stdOut(this.levels.info, text, "info");
@@ -81,85 +100,96 @@ class LoggerChalker {
 	debug(...text) {
 		this.#stdOut(this.levels.debug, text, "debug");
 	}
-	dir(object, options) {
-		console.dir(object, options);
+	clear() {
+		console.clear();
+		return this;
 	}
-
-	#clearLogs() {
+	clearLogs() {
 		this.#logs = [];
 	}
-	#stdOut(level, text, logType) {
+
+	#stdOut(level, text, logMethod, options) {
 		if (!this.#canSend(level)) {
-			this.#clearLogs();
+			this.clearLogs();
 			return;
 		}
 
-		console[logType](...this.#logs, ...text);
-		this.#clearLogs();
+		if (logMethod === "dir") {
+			console.log(...this.#logs);
+			console.dir(text, options);
+		} else {
+			console[logMethod](...this.#logs, ...text);
+		}
+
+		this.clearLogs();
 	}
 
-	#colorCallbackMaker(colorKey) {
-		const color = colors[colorKey];
+	#canSend(level) {
+		if (customTypeof.isNotNumber(level)) return false;
 
+		return this.#level >= level;
+	}
+
+	#colorMaker(colorKey) {
 		return (...data) => {
 			data.forEach((value) => {
 				if (typeof value === "object") {
 					this.#logs.push(value);
 				} else {
-					this.#logs.push(chalk[color](value));
+					this.#logs.push(this.colorizer[colorKey](value));
 				}
 			});
 			return this;
 		};
 	}
-	#bgColorCallbackMaker(bgColorKey) {
-		const bgColor = bgColors[bgColorKey];
-
+	#bgColorMaker(bgColorKey) {
 		return (data, textColor = colors.white) => {
 			if (typeof data === "object") {
 				this.#logs.push(data);
 			} else {
-				this.#logs.push(chalk[bgColor](chalk[textColor](data)));
+				this.#logs.push(
+					this.colorizer[bgColorKey](this.colorizer[textColor](data)),
+				);
 			}
 			return this;
 		};
 	}
 
 	//* Colors =>
-	black = this.#colorCallbackMaker("black");
-	blackBright = this.#colorCallbackMaker("blackBright");
-	blue = this.#colorCallbackMaker("blue");
-	blueBright = this.#colorCallbackMaker("blueBright");
-	cyan = this.#colorCallbackMaker("cyan");
-	cyanBright = this.#colorCallbackMaker("cyanBright");
-	green = this.#colorCallbackMaker("green");
-	greenBright = this.#colorCallbackMaker("greenBright");
-	magenta = this.#colorCallbackMaker("magenta");
-	magentaBright = this.#colorCallbackMaker("magentaBright");
-	red = this.#colorCallbackMaker("red");
-	redBright = this.#colorCallbackMaker("redBright");
-	white = this.#colorCallbackMaker("white");
-	whiteBright = this.#colorCallbackMaker("whiteBright");
-	yellow = this.#colorCallbackMaker("yellow");
-	yellowBright = this.#colorCallbackMaker("yellowBright");
+	black = this.#colorMaker("black");
+	blackBright = this.#colorMaker("blackBright");
+	blue = this.#colorMaker("blue");
+	blueBright = this.#colorMaker("blueBright");
+	cyan = this.#colorMaker("cyan");
+	cyanBright = this.#colorMaker("cyanBright");
+	green = this.#colorMaker("green");
+	greenBright = this.#colorMaker("greenBright");
+	magenta = this.#colorMaker("magenta");
+	magentaBright = this.#colorMaker("magentaBright");
+	red = this.#colorMaker("red");
+	redBright = this.#colorMaker("redBright");
+	white = this.#colorMaker("white");
+	whiteBright = this.#colorMaker("whiteBright");
+	yellow = this.#colorMaker("yellow");
+	yellowBright = this.#colorMaker("yellowBright");
 
 	//* BG Colors =>
-	bgBlack = this.#bgColorCallbackMaker("bgBlack");
-	bgBlackBright = this.#bgColorCallbackMaker("bgBlackBright");
-	bgBlue = this.#bgColorCallbackMaker("bgBlue");
-	bgBlueBright = this.#bgColorCallbackMaker("bgBlueBright");
-	bgCyan = this.#bgColorCallbackMaker("bgCyan");
-	bgCyanBright = this.#bgColorCallbackMaker("bgCyanBright");
-	bgGreen = this.#bgColorCallbackMaker("bgGreen");
-	bgGreenBright = this.#bgColorCallbackMaker("bgGreenBright");
-	bgMagenta = this.#bgColorCallbackMaker("bgMagenta");
-	bgMagentaBright = this.#bgColorCallbackMaker("bgMagentaBright");
-	bgRed = this.#bgColorCallbackMaker("bgRed");
-	bgRedBright = this.#bgColorCallbackMaker("bgRedBright");
-	bgWhite = this.#bgColorCallbackMaker("bgWhite");
-	bgWhiteBright = this.#bgColorCallbackMaker("bgWhiteBright");
-	bgYellow = this.#bgColorCallbackMaker("bgYellow");
-	bgYellowBright = this.#bgColorCallbackMaker("bgYellowBright");
+	bgBlack = this.#bgColorMaker("bgBlack");
+	bgBlackBright = this.#bgColorMaker("bgBlackBright");
+	bgBlue = this.#bgColorMaker("bgBlue");
+	bgBlueBright = this.#bgColorMaker("bgBlueBright");
+	bgCyan = this.#bgColorMaker("bgCyan");
+	bgCyanBright = this.#bgColorMaker("bgCyanBright");
+	bgGreen = this.#bgColorMaker("bgGreen");
+	bgGreenBright = this.#bgColorMaker("bgGreenBright");
+	bgMagenta = this.#bgColorMaker("bgMagenta");
+	bgMagentaBright = this.#bgColorMaker("bgMagentaBright");
+	bgRed = this.#bgColorMaker("bgRed");
+	bgRedBright = this.#bgColorMaker("bgRedBright");
+	bgWhite = this.#bgColorMaker("bgWhite");
+	bgWhiteBright = this.#bgColorMaker("bgWhiteBright");
+	bgYellow = this.#bgColorMaker("bgYellow");
+	bgYellowBright = this.#bgColorMaker("bgYellowBright");
 }
 
 module.exports = { LoggerChalker };
